@@ -21,7 +21,7 @@ public class PlayerRunState : PlayerBaseState
     public override void EnterState()
     {
         Context.Anim.SetBool(PlayerStateMachine.IsRunningHash, true);
-        Context.CurrentSpeed = PlayerStateMachine.RunSpeed;
+        Context.CurrentSpeed = Context.RunSpeed;
     }
 
     public override void ExitState()

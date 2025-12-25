@@ -2,122 +2,137 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Controlador principal del jugador que actúa como el "Contexto" en el patrón State Machine.
+/// Gestiona los componentes, la entrada de usuario y las variables físicas compartidas entre estados.
+/// </summary>
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(Animator))]
 public class PlayerStateMachine : MonoBehaviour
 {
-    #region Components
-    CharacterController _characterController;
-    Animator _anim;
-    PlayerInput _playerInput;
+    #region Componentes Cheados
+    private CharacterController _characterController;
+    private Animator _anim;
+    private PlayerInput _playerInput;
     #endregion
 
-    #region Movement Variables
-    Vector2 _currentMovementInput = Vector2.zero;
-    Vector3 _currentMovement = Vector3.zero;
-    Vector3 _appliedMovement = Vector3.zero;
+    #region Configuración de Movimiento
+    [Header("Ajustes de Velocidad")]
+    [SerializeField] private float _walkSpeed = 4.0f;
+    [SerializeField] private float _runSpeed = 8.0f;
+    [SerializeField] private float _rotationFactorPerFrame = 15.0f;
 
-    float _currentSpeed;
-    const float _walkSpeed = 4;
-    const float _runSpeed = 8;
-    float _rotationFactorPerFrame = 5;
+    // Propiedades públicas para acceso desde los Estados
+    public float CurrentSpeed { get; set; }
+    public float WalkSpeed => _walkSpeed;
+    public float RunSpeed => _runSpeed;
 
-    bool _isMovementPressed;
-    bool _isRunPressed = false;
+    // Datos de entrada y movimiento
+    public Vector2 CurrentMovementInput { get; set; }
+    public Vector3 CurrentMovement { get; set; } // Representa la dirección deseada
+    public Vector3 AppliedMovement;              // Representa el vector final (x, y, z) aplicado al CharacterController
+
+    public bool IsMovementPressed { get; set; }
+    public bool IsRunPressed { get; set; }
     #endregion
 
-    #region Jump Variables
-    [SerializeField] bool _holdJump = false;
+    #region Configuración de Salto y Gravedad
+    [Header("Ajustes de Salto")]
+    [SerializeField] private float _maxJumpHeight = 2.0f;
+    [SerializeField] private float _maxJumpTime = 0.7f;
 
-    float _gravity = -9.8f;
+    [Header("Estado de Salto")]
+    public bool IsJumpPressed { get; set; }
+    public bool IsJumping { get; set; }
+    public bool HoldJump { get; set; } // Útil para saltos de altura variable
 
-    [SerializeField] float _maxJumpHeight = 2.0f;
-    [SerializeField] float _maxJumpTime = 0.7f;
-    float _initialJumpVelocity;
-
-    bool _isJumping;
-    bool _isJumpPressed;
+    public float Gravity { get; private set; }
+    public float InitialJumpVelocity { get; private set; }
     #endregion
 
-    #region Animation Hash
-    private static readonly int _isWalkingHash = Animator.StringToHash("IsWalking");
-    private static readonly int _isRunningHash = Animator.StringToHash("IsRunning");
-    private static readonly int _isJumpingHash = Animator.StringToHash("IsJumping");
-    private static readonly int _isFallingHash = Animator.StringToHash("IsFalling");
+    #region Diccionario de Animaciones (Hashes)
+    // Usar Hashes es mucho más eficiente que usar Strings en cada frame
+    public static readonly int IsWalkingHash = Animator.StringToHash("IsWalking");
+    public static readonly int IsRunningHash = Animator.StringToHash("IsRunning");
+    public static readonly int IsJumpingHash = Animator.StringToHash("IsJumping");
+    public static readonly int IsFallingHash = Animator.StringToHash("IsFalling");
     #endregion
 
-    #region Interface & Events
-    public event Action<bool, float> GroundedChanged;
-    public event Action Jumped;
-    #endregion
-
-    PlayerBaseState _currentState;
-    PlayerStateFactory _states;
+    #region State Machine
+    private PlayerBaseState _currentState;
+    private PlayerStateFactory _states;
 
     public PlayerBaseState CurrentState { get => _currentState; set => _currentState = value; }
-    public bool IsJumpPressed { get => _isJumpPressed; set => _isJumpPressed = value; }
-    public bool IsJumping { get => _isJumping; set => _isJumping = value; }
-    public float CurrentMovementY { get => _currentMovement.y; set => _currentMovement.y = value; }
-    public float AppliedMovementY { get => _appliedMovement.y; set => _appliedMovement.y = value; }
-    public float AppliedMovementX { get => _appliedMovement.x; set => _appliedMovement.x = value; }
-    public float AppliedMovementZ { get => _appliedMovement.z; set => _appliedMovement.z = value; }
-    public float InitialJumpVelocity { get => _initialJumpVelocity; set => _initialJumpVelocity = value; }
-    public Animator Anim { get => _anim; set => _anim = value; }
-    public CharacterController CharacterController { get => _characterController; set => _characterController = value; }
-    public float Gravity { get => _gravity; set => _gravity = value; }
-    public bool HoldJump { get => _holdJump; set => _holdJump = value; }
-    public bool IsMovementPressed { get => _isMovementPressed; set => _isMovementPressed = value; }
-    public bool IsRunPressed { get => _isRunPressed; set => _isRunPressed = value; }
-    public Vector2 CurrentMovementInput { get => _currentMovementInput; set => _currentMovementInput = value; }
-    public float CurrentSpeed { get => _currentSpeed; set => _currentSpeed = value; }
+    public PlayerStateFactory States => _states;
+    #endregion
 
-    public static float WalkSpeed => _walkSpeed;
-
-    public static float RunSpeed => _runSpeed;
-
-    public PlayerStateFactory States { get => _states; set => _states = value; }
-
-    public static int IsWalkingHash => _isWalkingHash;
-
-    public static int IsRunningHash => _isRunningHash;
-
-    public static int IsJumpingHash => _isJumpingHash;
+    #region Acceso a Componentes (Propiedades)
+    public Animator Anim => _anim;
+    public CharacterController CharacterController => _characterController;
+    #endregion
 
     private void Awake()
     {
+        // Inicialización de componentes
         _characterController = GetComponent<CharacterController>();
         _anim = GetComponent<Animator>();
         _playerInput = new PlayerInput();
 
-        SetupInput();
+        // Configuración inicial
         SetupJumpVariables();
 
+        // Inicialización de la Máquina de Estados
         _states = new PlayerStateFactory(this);
         _currentState = _states.Grounded();
         _currentState.EnterState();
+
+        // Suscripción a inputs
+        SetupInputCallbacks();
     }
-    void SetupJumpVariables()
+
+    /// <summary>
+    /// Calcula la gravedad y la velocidad inicial de salto basándose en la altura deseada
+    /// y el tiempo que debe tardar el jugador en alcanzar el punto más alto (Apex).
+    /// </summary>
+    private void SetupJumpVariables()
     {
         float timeToApex = _maxJumpTime / 2;
-        _gravity = (-2 * _maxJumpHeight) / Mathf.Pow(timeToApex, 2);
-        _initialJumpVelocity = (2 * _maxJumpHeight) / timeToApex;
+        // Fórmulas físicas: Gravedad = (-2 * h) / t^2  | Velocidad inicial = (2 * h) / t
+        Gravity = (-2 * _maxJumpHeight) / Mathf.Pow(timeToApex, 2);
+        InitialJumpVelocity = (2 * _maxJumpHeight) / timeToApex;
     }
- 
-    private void Start()
-    {
-        _characterController.Move(_appliedMovement * Time.deltaTime);
-    }
+
     private void Update()
     {
         HandleRotation();
 
+        // Delega la lógica de actualización al estado actual
         _currentState.UpdateStates();
 
-        _appliedMovement.x = _currentMovement.x * _currentSpeed;
-        _appliedMovement.z = _currentMovement.z * _currentSpeed;
-        _characterController.Move(_appliedMovement * Time.deltaTime);
+        // Aplicamos la velocidad horizontal basándonos en la velocidad actual (Walk/Run)
+        // La Y se mantiene como la calcula la gravedad en los estados de Jump/Grounded
+        AppliedMovement.x = CurrentMovement.x * CurrentSpeed;
+        AppliedMovement.z = CurrentMovement.z * CurrentSpeed;
+
+        // Movimiento físico final
+        _characterController.Move(AppliedMovement * Time.deltaTime);
     }
-    void SetupInput()
+
+    /// <summary>
+    /// Rota al personaje suavemente hacia la dirección del movimiento.
+    /// </summary>
+    private void HandleRotation()
+    {
+        if (IsMovementPressed)
+        {
+            Vector3 targetDirection = new Vector3(CurrentMovement.x, 0, CurrentMovement.z);
+            Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, _rotationFactorPerFrame * Time.deltaTime);
+        }
+    }
+
+    #region Input Handling
+    private void SetupInputCallbacks()
     {
         _playerInput.Locomotion.Move.started += OnMovementInput;
         _playerInput.Locomotion.Move.canceled += OnMovementInput;
@@ -129,42 +144,20 @@ public class PlayerStateMachine : MonoBehaviour
         _playerInput.Locomotion.Jump.started += OnJumpInput;
         _playerInput.Locomotion.Jump.canceled += OnJumpInput;
     }
-    void OnMovementInput(InputAction.CallbackContext context)
-    {
-        _currentMovementInput = context.ReadValue<Vector2>();
-        _isMovementPressed = _currentMovementInput.x != 0 || _currentMovementInput.y != 0;
-        _currentMovement.x = _currentMovementInput.x;
-        _currentMovement.z = _currentMovementInput.y;
-    }
-    void OnJumpInput(InputAction.CallbackContext context)
-    {
-        _isJumpPressed = context.ReadValueAsButton();
-    }
-    void OnRunInput(InputAction.CallbackContext context)
-    {
-        _isRunPressed = context.ReadValueAsButton();
-    }
-    void HandleRotation()
-    {
-        Vector3 positionToLookAt;
-        positionToLookAt.x = _currentMovement.x;
-        positionToLookAt.y = 0.0f;
-        positionToLookAt.z = _currentMovement.z;
 
-        Quaternion currentRotation = transform.rotation;
+    private void OnMovementInput(InputAction.CallbackContext context)
+    {
+        CurrentMovementInput = context.ReadValue<Vector2>();
+        IsMovementPressed = CurrentMovementInput.x != 0 || CurrentMovementInput.y != 0;
 
-        if (_isMovementPressed)
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(positionToLookAt);
-            transform.rotation = Quaternion.Slerp(currentRotation, targetRotation, _rotationFactorPerFrame * Time.deltaTime);
-        }
+        // Mapeamos el Vector2 del input al Vector3 de movimiento (X, Z)
+        CurrentMovement = new Vector3(CurrentMovementInput.x, 0, CurrentMovementInput.y);
     }
-    private void OnEnable()
-    {
-        _playerInput.Locomotion.Enable();
-    }
-    private void OnDisable()
-    {
-        _playerInput.Locomotion.Disable();
-    }
+
+    private void OnJumpInput(InputAction.CallbackContext context) => IsJumpPressed = context.ReadValueAsButton();
+    private void OnRunInput(InputAction.CallbackContext context) => IsRunPressed = context.ReadValueAsButton();
+
+    private void OnEnable() => _playerInput.Locomotion.Enable();
+    private void OnDisable() => _playerInput.Locomotion.Disable();
+    #endregion
 }

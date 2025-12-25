@@ -40,8 +40,8 @@ public class PlayerJumpState : PlayerBaseState, IRootState
     void HandleJump()
     {
         Context.IsJumping = true;
-        Context.CurrentMovementY = Context.InitialJumpVelocity;
-        Context.AppliedMovementY = Context.InitialJumpVelocity;
+        Context.CurrentMovement = new Vector3(Context.CurrentMovement.x, Context.InitialJumpVelocity, Context.CurrentMovement.z);
+        Context.AppliedMovement.y = Context.InitialJumpVelocity;
         Context.Anim.SetTrigger(PlayerStateMachine.IsJumpingHash);
     }
     public void HandleGravity()
@@ -49,21 +49,21 @@ public class PlayerJumpState : PlayerBaseState, IRootState
         bool isFalling;
         float fallMultiplier = 2.0f;
         if (Context.HoldJump)
-            isFalling = Context.CurrentMovementY <= 0 || !Context.IsJumpPressed;
+            isFalling = Context.CurrentMovement.y <= 0 || !Context.IsJumpPressed;
         else
-            isFalling = Context.CurrentMovementY <= 0;
+            isFalling = Context.CurrentMovement.y <= 0;
 
         if (isFalling)
         {
-            float previousYVelocity = Context.CurrentMovementY;
-            Context.CurrentMovementY = Context.CurrentMovementY + (Context.Gravity * fallMultiplier * Time.deltaTime);
-            Context.AppliedMovementY = Mathf.Max((previousYVelocity + Context.CurrentMovementY) * 0.5f, -10.0f);
+            float previousYVelocity = Context.CurrentMovement.y;
+            Context.CurrentMovement = new Vector3(Context.CurrentMovement.x, Context.CurrentMovement.y + (Context.Gravity * fallMultiplier * Time.deltaTime), Context.CurrentMovement.z);
+            Context.AppliedMovement.y = Mathf.Max((previousYVelocity + Context.CurrentMovement.y) * 0.5f, -10.0f);
         }
         else
         {
-            float previousYVelocity = Context.CurrentMovementY;
-            Context.CurrentMovementY = Context.CurrentMovementY + (Context.Gravity * Time.deltaTime);
-            Context.AppliedMovementY = (previousYVelocity + Context.CurrentMovementY) * 0.5f;
+            float previousYVelocity = Context.CurrentMovement.y;
+            Context.CurrentMovement = new Vector3(Context.CurrentMovement.x, Context.CurrentMovement.y + (Context.Gravity * Time.deltaTime), Context.CurrentMovement.z);
+            Context.AppliedMovement.y = (previousYVelocity + Context.CurrentMovement.y) * 0.5f;
         }
     }
 }

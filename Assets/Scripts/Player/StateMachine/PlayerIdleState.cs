@@ -20,8 +20,8 @@ public class PlayerIdleState : PlayerBaseState
 
     public override void EnterState()
     {
-        Context.AppliedMovementX = 0;
-        Context.AppliedMovementZ = 0;
+        Context.AppliedMovement.x = 0;
+        Context.AppliedMovement.z = 0;
     }
 
     public override void ExitState()

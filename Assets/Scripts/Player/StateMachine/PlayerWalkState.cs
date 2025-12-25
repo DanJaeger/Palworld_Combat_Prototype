@@ -20,7 +20,7 @@ public class PlayerWalkState : PlayerBaseState
     public override void EnterState()
     {
         Context.Anim.SetBool(PlayerStateMachine.IsWalkingHash, true);
-        Context.CurrentSpeed = PlayerStateMachine.WalkSpeed;
+        Context.CurrentSpeed = Context.WalkSpeed;
     }
 
     public override void ExitState()

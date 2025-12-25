@@ -40,8 +40,8 @@ public class PlayerFallState : PlayerBaseState, IRootState
 
     public void HandleGravity()
     {
-        float previousYVelocity = Context.CurrentMovementY;
-        Context.CurrentMovementY = Context.CurrentMovementY + Context.Gravity * Time.deltaTime;
-        Context.AppliedMovementY = Mathf.Max((previousYVelocity + Context.CurrentMovementY) * 0.5f, -20.0f);
+        float previousYVelocity = Context.CurrentMovement.y;
+        Context.CurrentMovement = new Vector3(Context.CurrentMovement.x, Context.CurrentMovement.y + Context.Gravity * Time.deltaTime, Context.CurrentMovement.z);
+        Context.AppliedMovement.y = Mathf.Max((previousYVelocity + Context.CurrentMovement.y) * 0.5f, -20.0f);
     }
 }

@@ -34,7 +34,7 @@ public class PlayerGroundedState : PlayerBaseState, IRootState
 
     public void HandleGravity()
     {
-        Context.CurrentMovementY = Context.Gravity;
+        Context.CurrentMovement = new Vector3(Context.CurrentMovement.x, Context.Gravity, Context.CurrentMovement.z);
     }
 
     public override void InitializeSubState()
