@@ -14,6 +14,7 @@ public class PlayerStateMachine : MonoBehaviour
     private CharacterController _characterController;
     private Animator _anim;
     private PlayerInput _playerInput;
+    private Transform _cameraTransform;
     #endregion
 
     #region Configuración de Movimiento
@@ -78,6 +79,8 @@ public class PlayerStateMachine : MonoBehaviour
         _anim = GetComponent<Animator>();
         _playerInput = new PlayerInput();
 
+        if (Camera.main != null) _cameraTransform = Camera.main.transform;
+
         // Configuración inicial
         SetupJumpVariables();
 
@@ -88,6 +91,9 @@ public class PlayerStateMachine : MonoBehaviour
 
         // Suscripción a inputs
         SetupInputCallbacks();
+
+        //Mouse Config
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     /// <summary>
@@ -104,6 +110,8 @@ public class PlayerStateMachine : MonoBehaviour
 
     private void Update()
     {
+        CalculateCameraRelativeMovement();
+
         HandleRotation();
 
         // Delega la lógica de actualización al estado actual
@@ -113,9 +121,34 @@ public class PlayerStateMachine : MonoBehaviour
         // La Y se mantiene como la calcula la gravedad en los estados de Jump/Grounded
         AppliedMovement.x = CurrentMovement.x * CurrentSpeed;
         AppliedMovement.z = CurrentMovement.z * CurrentSpeed;
+        // Y lleva la velocidad vertical directa (Salto/Gravedad)
+        AppliedMovement.y = CurrentMovement.y;
 
         // Movimiento físico final
         _characterController.Move(AppliedMovement * Time.deltaTime);
+    }
+
+    /// <summary>
+    /// Transforma el input local (WASD) en una dirección del mundo real basada en la cámara.
+    /// </summary>
+    private void CalculateCameraRelativeMovement()
+    {
+        if (_cameraTransform == null) return;
+
+        // Obtenemos los vectores Forward y Right de la cámara
+        Vector3 forward = _cameraTransform.forward;
+        Vector3 right = _cameraTransform.right;
+
+        // Anulamos la inclinación vertical (Y) para que el personaje no intente "volar"
+        forward.y = 0;
+        right.y = 0;
+        forward.Normalize();
+        right.Normalize();
+
+        // Guardamos la dirección horizontal en un vector temporal
+        Vector3 desiredRunDirection = (forward * CurrentMovementInput.y) + (right * CurrentMovementInput.x);
+        // Creamos la dirección final combinando el input con la orientación de la cámara
+        CurrentMovement = new Vector3(desiredRunDirection.x, CurrentMovement.y, desiredRunDirection.z);
     }
 
     /// <summary>
@@ -123,11 +156,20 @@ public class PlayerStateMachine : MonoBehaviour
     /// </summary>
     private void HandleRotation()
     {
+        // Solo rotamos si el jugador está moviendo el stick/teclas
+        // Esto cumple tu condición: si solo mueves la cámara y no el input, el jugador no rota.
         if (IsMovementPressed)
         {
-            Vector3 targetDirection = new Vector3(CurrentMovement.x, 0, CurrentMovement.z);
-            Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, _rotationFactorPerFrame * Time.deltaTime);
+            // 1. Creamos un vector basado en el movimiento, pero forzamos Y a cero
+            // Esto evita que el personaje se incline al saltar o caer.
+            Vector3 rotationDirection = new Vector3(CurrentMovement.x, 0f, CurrentMovement.z);
+
+            // 2. Solo rotamos si hay una dirección horizontal real
+            if (rotationDirection != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(rotationDirection);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, _rotationFactorPerFrame * Time.deltaTime);
+            }
         }
     }
 
