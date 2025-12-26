@@ -15,32 +15,28 @@ public class PlayerStateMachine : MonoBehaviour
     private Animator _anim;
     private PlayerInput _playerInput;
     private Transform _cameraTransform;
+
+    [Header("Character Stats: ")]
+    [SerializeField] private CharacterStatsSO _characterStats;
     #endregion
 
     #region Configuración de Movimiento
-    [Header("Ajustes de Velocidad")]
-    [SerializeField] private float _walkSpeed = 4.0f;
-    [SerializeField] private float _runSpeed = 8.0f;
-    [SerializeField] private float _rotationFactorPerFrame = 15.0f;
 
     // Propiedades públicas para acceso desde los Estados
     public float CurrentSpeed { get; set; }
-    public float WalkSpeed => _walkSpeed;
-    public float RunSpeed => _runSpeed;
+    public float WalkSpeed => _characterStats.WalkSpeed;
+    public float RunSpeed => _characterStats.RunSpeed;
 
     // Datos de entrada y movimiento
     public Vector2 CurrentMovementInput { get; set; }
     public Vector3 CurrentMovement { get; set; } // Representa la dirección deseada
-    public Vector3 AppliedMovement;              // Representa el vector final (x, y, z) aplicado al CharacterController
+    [HideInInspector] public Vector3 AppliedMovement;              // Representa el vector final (x, y, z) aplicado al CharacterController
 
     public bool IsMovementPressed { get; set; }
     public bool IsRunPressed { get; set; }
     #endregion
 
     #region Configuración de Salto y Gravedad
-    [Header("Ajustes de Salto")]
-    [SerializeField] private float _maxJumpHeight = 2.0f;
-    [SerializeField] private float _maxJumpTime = 0.7f;
 
     [Header("Estado de Salto")]
     public bool IsJumpPressed { get; set; }
@@ -102,10 +98,10 @@ public class PlayerStateMachine : MonoBehaviour
     /// </summary>
     private void SetupJumpVariables()
     {
-        float timeToApex = _maxJumpTime / 2;
+        float timeToApex = _characterStats.MaxJumpTime / 2;
         // Fórmulas físicas: Gravedad = (-2 * h) / t^2  | Velocidad inicial = (2 * h) / t
-        Gravity = (-2 * _maxJumpHeight) / Mathf.Pow(timeToApex, 2);
-        InitialJumpVelocity = (2 * _maxJumpHeight) / timeToApex;
+        Gravity = (-2 * _characterStats.MaxJumpHeight) / Mathf.Pow(timeToApex, 2);
+        InitialJumpVelocity = (2 * _characterStats.MaxJumpHeight) / timeToApex;
     }
 
     private void Update()
@@ -168,7 +164,7 @@ public class PlayerStateMachine : MonoBehaviour
             if (rotationDirection != Vector3.zero)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(rotationDirection);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, _rotationFactorPerFrame * Time.deltaTime);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, _characterStats.RotationFactorPerFrame * Time.deltaTime);
             }
         }
     }

@@ -47152,6 +47152,7 @@ GameObject:
   - component: {fileID: 7635726066673482671}
   - component: {fileID: 4757836856202502673}
   - component: {fileID: 7635726066673482672}
+  - component: {fileID: 7635726066673482673}
   m_Layer: 0
   m_Name: Jammo_Player
   m_TagString: Untagged
@@ -50415,12 +50416,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d558c629e233a544ab421073f9cda932, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStateMachine
-  _walkSpeed: 4
-  _runSpeed: 8
-  _rotationFactorPerFrame: 15
+  _characterStats: {fileID: 11400000, guid: 876891da05c771b418f849c2bd3e48e3, type: 2}
   AppliedMovement: {x: 0, y: 0, z: 0}
-  _maxJumpHeight: 2
-  _maxJumpTime: 0.7
+--- !u!114 &7635726066673482673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3541754000602899654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0ee408ca17cba648b04a084b495b780, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterStatsController
+  statsTemplate: {fileID: 11400000, guid: 876891da05c771b418f849c2bd3e48e3, type: 2}
 --- !u!1 &7678658565840323206
 GameObject:
   m_ObjectHideFlags: 0
