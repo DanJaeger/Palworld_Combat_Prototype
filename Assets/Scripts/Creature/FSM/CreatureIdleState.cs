@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class CreatureIdleState : CreatureBaseState
 {
-    private float _idleDuration = 10f; // 1 minuto
     private float _timer;
     public CreatureIdleState(CreatureStateMachine currentContext, CreatureStateFactory creatureStateFactory)
         : base(currentContext, creatureStateFactory) { }
@@ -30,7 +29,7 @@ public class CreatureIdleState : CreatureBaseState
     #region Logic
     public override void CheckSwitchStates()
     {
-        if (_timer >= _idleDuration && !Context.IsBusy)
+        if (_timer >= Context.Data.idleDuration && !Context.IsBusy)
         {
             SwitchState(Factory.Patrol());
             return;

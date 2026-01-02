@@ -47853,6 +47853,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1841827b56d4e714aaf1183a13ee5a5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureStateMachine
+  _data: {fileID: 11400000, guid: 243ce26f5dca24b41b34358c5aaf92d7, type: 2}
   _showGizmos: 1
   _radiusColor: {r: 0, g: 0, b: 0.8039216, a: 1}
   _targetColor: {r: 1, g: 0, b: 0, a: 1}

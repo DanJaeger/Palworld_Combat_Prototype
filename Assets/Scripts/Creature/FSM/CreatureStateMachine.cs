@@ -1,14 +1,20 @@
 using System;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
 public class CreatureStateMachine : MonoBehaviour
 {
+    #region Data
+    [Header("Creature Data: ")]
+    [SerializeField] private CreatureData _data;
+    public CreatureData Data => _data;
+    #endregion
+
     #region Private Components
     private CreatureStateFactory _states;
     private CreatureBaseState _currentState;
-
     #endregion
 
     #region Animation
@@ -24,9 +30,8 @@ public class CreatureStateMachine : MonoBehaviour
 
     #region Navigation
     [Header("Navigation")]
-    private NavMeshAgent _agent;
-    [Header("Patrol Settings")]
-    private readonly float _patrolRadius = 20f;
+    [HideInInspector]
+    public NavMeshAgent Agent { get; private set; }
 
     public Transform FollowTarget { get; private set; }
     #endregion
@@ -41,21 +46,24 @@ public class CreatureStateMachine : MonoBehaviour
     // Propiedades expuestas para los estados
     public CreatureBaseState CurrentState { get => _currentState; set => _currentState = value; }
     public Animator Anim { get => _anim; set => _anim = value; }
-    public NavMeshAgent Agent { get => _agent; set => _agent = value; }
-
-    internal bool CanSeePlayer()
-    {
-        return false;
-    }
 
     #region Initialization
     private void Awake()
     {
         _anim = GetComponent<Animator>();
+        if (_anim == null) Debug.LogError("No Animator found on: " + this.name);
 
-        _agent = GetComponent<NavMeshAgent>();
+        Agent = GetComponent<NavMeshAgent>();
+        if (Agent != null)
+        {
+            Agent.stoppingDistance = _data.stoppingDistance;
+            Agent.acceleration = _data.acceleration;
+        }
+        else
+        {
+            Debug.LogError("No NavMeshAgent found on: " + this.name);
+        }
 
-        // Ejemplo: Si es un pájaro, FlyPatrolStrategy; si es un zombie, WalkPatrolStrategy.
         IdleStrategy = new GrazeBehaviorStrategy();
         PatrolStrategy = new GallopMovementStrategy();
         ChaseStrategy = new ChaseMovementStrategy();
@@ -138,7 +146,7 @@ public class CreatureStateMachine : MonoBehaviour
 
     public Vector3 GetRandomPatrolPoint()
     {
-        Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * _patrolRadius;
+        Vector3 randomDirection = UnityEngine.Random.insideUnitSphere * _data.patrolRadius;
         randomDirection += transform.position;
 
         NavMeshHit hit;
@@ -177,7 +185,7 @@ public class CreatureStateMachine : MonoBehaviour
         // 1. Dibujar el Radio de Patrulla (Esfera de alambre)
         // Se dibuja alrededor de la posición actual del animal
         Gizmos.color = _radiusColor;
-        Gizmos.DrawWireSphere(transform.position, _patrolRadius);
+        Gizmos.DrawWireSphere(transform.position, _data.patrolRadius);
 
         // 2. Dibujar el Punto de Destino
         if (Agent != null && Agent.hasPath)
