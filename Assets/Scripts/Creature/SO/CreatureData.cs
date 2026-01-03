@@ -3,6 +3,11 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewCreatureData", menuName = "Creatures/Data")]
 public class CreatureData : ScriptableObject
 {
+    [Header("Estrategias")]
+    public IdleStrategySO idleStrategy;
+    public MovementStrategySO patrolStrategy; // Aquí arrastrarás tu GallopStrategySO
+    public MovementStrategySO chaseStrategy;
+
     [Header("Movement Settings")]
     public float idleDuration = 10f;
 

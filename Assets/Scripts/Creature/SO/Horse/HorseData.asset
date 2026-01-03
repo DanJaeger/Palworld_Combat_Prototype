@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae47b39c924e8b94f974a649b7eacc14, type: 3}
   m_Name: HorseData
   m_EditorClassIdentifier: Assembly-CSharp::CreatureData
+  idleStrategy: {fileID: 11400000, guid: 5557409814f29454ba335dfc5329aab2, type: 2}
+  patrolStrategy: {fileID: 11400000, guid: bdd5678f08767e044b19feef9f394014, type: 2}
+  chaseStrategy: {fileID: 11400000, guid: 75ac6c3bee5b792438e8155f6d3dcbda, type: 2}
   idleDuration: 10
   animationParameterTargetValue: 1
   timeToReachTargetValue: 1.25

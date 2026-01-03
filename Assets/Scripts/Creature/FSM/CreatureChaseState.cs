@@ -8,14 +8,19 @@ public class CreatureChaseState : CreatureBaseState
     #region State Lifecycle
     public override void EnterState()
     {
-        Debug.Log("Iniciando seguimiento del jugador.");
-        // Cambiamos a la estrategia de seguimiento
-        Context.ChaseStrategy.StartMovement(Context);
+        Context.MovementStrategy = Context.Data.chaseStrategy;
+        if (Context.MovementStrategy != null)
+        {
+            Context.MovementStrategy.StartMovement(Context);
+        }
     }
 
     public override void UpdateState()
     {
-        Context.ChaseStrategy.Move(Context);
+        if (Context.MovementStrategy != null)
+        {
+            Context.MovementStrategy.Move(Context);
+        }
         CheckSwitchStates();
     }
 

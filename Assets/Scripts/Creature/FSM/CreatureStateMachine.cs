@@ -38,9 +38,9 @@ public class CreatureStateMachine : MonoBehaviour
 
     #region Strategies
     // Referencias a las estrategias (pueden ser Serialized o inyectadas)
-    public IIdleStrategy IdleStrategy { get; set; }
-    public IMovementStrategy PatrolStrategy { get; set; }
-    public IMovementStrategy ChaseStrategy { get; set; }
+    public IdleStrategySO IdleStrategy { get; set; }
+    public MovementStrategySO MovementStrategy { get; set; }
+    //public IMovementStrategy ChaseStrategy { get; set; }
     #endregion
 
     // Propiedades expuestas para los estados
@@ -64,9 +64,7 @@ public class CreatureStateMachine : MonoBehaviour
             Debug.LogError("No NavMeshAgent found on: " + this.name);
         }
 
-        IdleStrategy = new GrazeBehaviorStrategy();
-        PatrolStrategy = new GallopMovementStrategy();
-        ChaseStrategy = new ChaseMovementStrategy();
+        IdleStrategy = _data.idleStrategy;
 
         _states = new CreatureStateFactory(this);
         _currentState = _states.Idle();

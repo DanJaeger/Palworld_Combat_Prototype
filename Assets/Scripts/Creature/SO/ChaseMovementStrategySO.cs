@@ -1,8 +1,9 @@
 using UnityEngine;
 
-public class ChaseMovementStrategy : IMovementStrategy
+[CreateAssetMenu(fileName = "ChaseStrategy", menuName = "Creatures/Strategies/Horse/Chase")]
+public class ChaseMovementStrategySO : MovementStrategySO
 {
-    public void StartMovement(CreatureStateMachine creature)
+    public override void StartMovement(CreatureStateMachine creature)
     {
         creature.Agent.speed = creature.Data.chaseSpeed;
         creature.Agent.acceleration = creature.Data.acceleration;
@@ -11,7 +12,7 @@ public class ChaseMovementStrategy : IMovementStrategy
         creature.Agent.autoBraking = true;
     }
 
-    public void Move(CreatureStateMachine creature)
+    public override void Move(CreatureStateMachine creature)
     {
         if (creature.FollowTarget == null) return;
 

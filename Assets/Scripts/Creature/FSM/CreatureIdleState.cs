@@ -16,7 +16,10 @@ public class CreatureIdleState : CreatureBaseState
     public override void UpdateState()
     {
         _timer += Time.deltaTime;
-        Context.IdleStrategy.Idling(Context);
+        if (Context.IdleStrategy != null)
+        {
+            Context.IdleStrategy.Idling(Context);
+        }
         CheckSwitchStates();
     }
 

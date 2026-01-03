@@ -8,12 +8,19 @@ public class CreaturePatrolState : CreatureBaseState
     #region State Lifecycle
     public override void EnterState()
     {
-        Context.PatrolStrategy.StartMovement(Context);
+        Context.MovementStrategy = Context.Data.patrolStrategy;
+        if (Context.MovementStrategy != null)
+        {
+            Context.MovementStrategy.StartMovement(Context);
+        }
     }
 
     public override void UpdateState()
     {
-        Context.PatrolStrategy.Move(Context);
+        if (Context.MovementStrategy != null)
+        {
+            Context.MovementStrategy.Move(Context);
+        }
         CheckSwitchStates();
     }
 
