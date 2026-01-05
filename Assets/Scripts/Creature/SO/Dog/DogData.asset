@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae47b39c924e8b94f974a649b7eacc14, type: 3}
+  m_Name: DogData
+  m_EditorClassIdentifier: Assembly-CSharp::CreatureData
+  idleStrategy: {fileID: 11400000, guid: 3882906c75fcb1148a6e0aad7969438e, type: 2}
+  patrolStrategy: {fileID: 11400000, guid: f7362697fc66bb44d93d0f334181e298, type: 2}
+  chaseStrategy: {fileID: 11400000, guid: edbb9031ffd9ee1498775947876460e2, type: 2}
+  idleDuration: 10
+  animationParameterTargetValue: 1
+  timeToReachTargetValue: 1.25
+  cooldownTime: 17.5
+  timesToLoopAnimation: 2
+  patrolSpeed: 2
+  chaseSpeed: 5
+  acceleration: 15
+  patrolRadius: 10
+  stoppingDistance: 3
+  interactionRadius: 3
+  rotationSpeed: 7
+  animDampTime: 0.1

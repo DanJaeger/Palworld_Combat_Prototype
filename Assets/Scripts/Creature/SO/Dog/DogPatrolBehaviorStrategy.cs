@@ -1,7 +1,7 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "GallopStrategy", menuName = "Creatures/Strategies/Horse/Gallop")]
-public class GallopStrategySO : MovementStrategySO
+[CreateAssetMenu(fileName = "DogPatrolBehaviorStrategy", menuName = "Creatures/Strategies/Dog/Patrol")]
+public class DogPatrolBehaviorStrategy : MovementStrategySO
 {
     public override void StartMovement(CreatureStateMachine creature)
     {
@@ -13,18 +13,18 @@ public class GallopStrategySO : MovementStrategySO
         creature.Agent.isStopped = false;
 
         // 2. Calculamos el destino
-        // Cada animal llamará a su propia instancia de GetRandomPatrolPoint()
+        // Cada animal llamara a su propia instancia de GetRandomPatrolPoint()
         Vector3 target = creature.GetRandomPatrolPoint();
         creature.Agent.SetDestination(target);
     }
 
     public override void Move(CreatureStateMachine creature)
     {
-        // 1. Actualizar Animación (Cada animal tiene su propio Animator)
+        // 1. Actualizar Animacion (Cada animal tiene su propio Animator)
         // Usamos el snap a 1f para el galope constante
         creature.Anim.SetFloat(CreatureStateMachine.VertHash, 1f, 0.1f, Time.deltaTime);
 
-        // 2. Rotación Manual Suave
+        // 2. Rotacion Manual Suave
         ApplySmoothRotation(creature);
     }
 
@@ -37,7 +37,7 @@ public class GallopStrategySO : MovementStrategySO
             Vector3 direction = creature.Agent.velocity.normalized;
             Quaternion targetRotation = Quaternion.LookRotation(direction);
 
-            // Cada transform.rotation es único de la instancia del animal
+            // Cada transform.rotation es unico de la instancia del animal
             creature.transform.rotation = Quaternion.Slerp(
                 creature.transform.rotation,
                 targetRotation,

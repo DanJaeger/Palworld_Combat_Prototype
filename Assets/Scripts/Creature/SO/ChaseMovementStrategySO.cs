@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "ChaseStrategy", menuName = "Creatures/Strategies/Horse/Chase")]
+[CreateAssetMenu(fileName = "ChaseStrategy", menuName = "Creatures/Strategies/Chase")]
 public class ChaseMovementStrategySO : MovementStrategySO
 {
     public override void StartMovement(CreatureStateMachine creature)
