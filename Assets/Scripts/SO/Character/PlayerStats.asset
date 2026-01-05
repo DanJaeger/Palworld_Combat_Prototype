@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 016c636418e809843b651ab12fb84c65, type: 3}
+  m_Name: PlayerStats
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterStatsSO
+  MaxHealth: 100
+  InitialHealth: 100
+  PlayerLayer:
+    serializedVersion: 2
+    m_Bits: 1024
+  SnapInput: 1
+  VerticalDeadZoneThreshold: 0.3
+  HorizontalDeadZoneThreshold: 0.1
+  WalkSpeed: 4
+  RunSpeed: 8
+  RotationFactorPerFrame: 15
+  MaxJumpHeight: 2
+  MaxJumpTime: 0.7

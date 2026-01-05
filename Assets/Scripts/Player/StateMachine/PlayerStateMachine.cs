@@ -15,32 +15,28 @@ public class PlayerStateMachine : MonoBehaviour
     private Animator _anim;
     private PlayerInput _playerInput;
     private Transform _cameraTransform;
+
+    [Header("Character Stats: ")]
+    [SerializeField] private CharacterStatsSO _characterStats;
     #endregion
 
     #region Configuración de Movimiento
-    [Header("Ajustes de Velocidad")]
-    [SerializeField] private float _walkSpeed = 4.0f;
-    [SerializeField] private float _runSpeed = 8.0f;
-    [SerializeField] private float _rotationFactorPerFrame = 15.0f;
 
     // Propiedades públicas para acceso desde los Estados
     public float CurrentSpeed { get; set; }
-    public float WalkSpeed => _walkSpeed;
-    public float RunSpeed => _runSpeed;
+    public float WalkSpeed => _characterStats.WalkSpeed;
+    public float RunSpeed => _characterStats.RunSpeed;
 
     // Datos de entrada y movimiento
     public Vector2 CurrentMovementInput { get; set; }
     public Vector3 CurrentMovement { get; set; } // Representa la dirección deseada
-    public Vector3 AppliedMovement;              // Representa el vector final (x, y, z) aplicado al CharacterController
+    [HideInInspector] public Vector3 AppliedMovement;              // Representa el vector final (x, y, z) aplicado al CharacterController
 
     public bool IsMovementPressed { get; set; }
     public bool IsRunPressed { get; set; }
     #endregion
 
     #region Configuración de Salto y Gravedad
-    [Header("Ajustes de Salto")]
-    [SerializeField] private float _maxJumpHeight = 2.0f;
-    [SerializeField] private float _maxJumpTime = 0.7f;
 
     [Header("Estado de Salto")]
     public bool IsJumpPressed { get; set; }
@@ -49,6 +45,11 @@ public class PlayerStateMachine : MonoBehaviour
 
     public float Gravity { get; private set; }
     public float InitialJumpVelocity { get; private set; }
+    #endregion
+
+    #region Configuracion de Interaccion
+    private float _interactionRadius = 3f;
+    private int _creatureLayer;
     #endregion
 
     #region Diccionario de Animaciones (Hashes)
@@ -94,6 +95,9 @@ public class PlayerStateMachine : MonoBehaviour
 
         //Mouse Config
         Cursor.lockState = CursorLockMode.Locked;
+
+        //Capa de los NPC
+        _creatureLayer = 1 << 11;
     }
 
     /// <summary>
@@ -102,10 +106,10 @@ public class PlayerStateMachine : MonoBehaviour
     /// </summary>
     private void SetupJumpVariables()
     {
-        float timeToApex = _maxJumpTime / 2;
+        float timeToApex = _characterStats.MaxJumpTime / 2;
         // Fórmulas físicas: Gravedad = (-2 * h) / t^2  | Velocidad inicial = (2 * h) / t
-        Gravity = (-2 * _maxJumpHeight) / Mathf.Pow(timeToApex, 2);
-        InitialJumpVelocity = (2 * _maxJumpHeight) / timeToApex;
+        Gravity = (-2 * _characterStats.MaxJumpHeight) / Mathf.Pow(timeToApex, 2);
+        InitialJumpVelocity = (2 * _characterStats.MaxJumpHeight) / timeToApex;
     }
 
     private void Update()
@@ -168,10 +172,48 @@ public class PlayerStateMachine : MonoBehaviour
             if (rotationDirection != Vector3.zero)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(rotationDirection);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, _rotationFactorPerFrame * Time.deltaTime);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, _characterStats.RotationFactorPerFrame * Time.deltaTime);
             }
         }
     }
+
+    #region Interaction
+    private void TryInteractWithCreature()
+    {
+        // 1. Buscamos todos los colliders en el radio
+        Collider[] colliders = Physics.OverlapSphere(transform.position, _interactionRadius, _creatureLayer);
+
+        foreach (Collider col in colliders)
+        {
+            // 2. Intentamos obtener el script de la criatura
+            if (col.TryGetComponent<CreatureStateMachine>(out CreatureStateMachine creature))
+            {
+                // 3. Si ya nos está siguiendo, lo liberamos; si no, que nos siga
+                if (creature.FollowTarget == transform)
+                {
+                    Debug.Log("Dejando de seguir al jugador.");
+                    creature.StopFollowing();
+                }
+                else
+                {
+                    Debug.Log("¡Interacción exitosa! El animal ahora me sigue.");
+                    creature.OnPlayerInteracted(transform);
+                }
+
+                // Rompemos el bucle para interactuar solo con el primero que encuentre
+                break;
+            }
+        }
+    }
+
+    // Visualizar el radio de interacción en el Editor
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, _interactionRadius);
+    }
+    #endregion
+
 
     #region Input Handling
     private void SetupInputCallbacks()
@@ -185,6 +227,10 @@ public class PlayerStateMachine : MonoBehaviour
 
         _playerInput.Locomotion.Jump.started += OnJumpInput;
         _playerInput.Locomotion.Jump.canceled += OnJumpInput;
+
+        _playerInput.Locomotion.Interact.started += OnInteractInput;
+        _playerInput.Locomotion.Interact.canceled += OnInteractInput;
+        _playerInput.Locomotion.Interact.performed += OnInteractInput;
     }
 
     private void OnMovementInput(InputAction.CallbackContext context)
@@ -197,6 +243,15 @@ public class PlayerStateMachine : MonoBehaviour
     }
 
     private void OnJumpInput(InputAction.CallbackContext context) => IsJumpPressed = context.ReadValueAsButton();
+    private void OnInteractInput(InputAction.CallbackContext context)
+    {
+        // Usamos 'performed' para asegurar que la acción se completó (el botón se hundió)
+        // Esto evita que la función se llame dos veces (al presionar y al soltar)
+        if (context.performed)
+        {
+            TryInteractWithCreature();
+        }
+    }
     private void OnRunInput(InputAction.CallbackContext context) => IsRunPressed = context.ReadValueAsButton();
 
     private void OnEnable() => _playerInput.Locomotion.Enable();
